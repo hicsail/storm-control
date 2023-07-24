@@ -169,7 +169,7 @@ class ObjectivesGroupBox(QtWidgets.QGroupBox):
                                  um_per_pixel = float(data[1]),
                                  x_offset = float(data[2]),
                                  y_offset = float(data[3]))
-        self.item_store.addItem(obj_item)
+        #self.item_store.addItem(obj_item)
 
         # Create objective managing object.
         obj = Objective(fixed = False,

@@ -39,10 +39,10 @@ class Crosshair(QtWidgets.QGraphicsItem):
         painter.setPen(self.ch_pen)
         painter.drawLine(-self.r_size, 0, self.r_size, 0)
         painter.drawLine(0, -self.r_size, 0, self.r_size)
-        painter.drawEllipse(-0.5 * self.r_size,
-                            -0.5 * self.r_size,
-                            self.r_size,
-                            self.r_size)
+        painter.drawEllipse(int(-0.5 * self.r_size),
+                            int(-0.5 * self.r_size),
+                            int(self.r_size),
+                            int(self.r_size))
 
     def setScale(self, scale):
         """
