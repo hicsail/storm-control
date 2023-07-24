@@ -166,7 +166,9 @@ class Positions(QtWidgets.QListView):
             self.addLines()
             
 
-    def addLines(self):        
+    def addLines(self): 
+        if len(self.item_store.items) < 2:
+            return       
         for i in range(len(self.item_store.items) - 1):
             first = list(self.item_store.items.items())[i][1]
             second = list(self.item_store.items.items())[i+1][1]
