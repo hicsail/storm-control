@@ -18,7 +18,7 @@ item_id = 0
 class SteveItem(object):
     """
     Base class for items that Steve will work with such as images,
-    positions andc sections.
+    positions and sections.
     """
 
     # This is type name to use when saving/loading mosaic files.
