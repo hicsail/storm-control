@@ -226,7 +226,6 @@ class Window(QtWidgets.QMainWindow):
             x = position_dict['grid_spacing']*pos[0] + position_dict['x_center']
             y = position_dict['grid_spacing']*pos[1] + position_dict['y_center']
             self.positions.addPosition(coord.Point(float(x), float(y), "um"))
-            print(pos, "is pad")
 
     @hdebug.debug
     def handleMosaicViewContextMenuEvent(self, event, a_coord):
