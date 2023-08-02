@@ -169,6 +169,7 @@ class ObjectivesGroupBox(QtWidgets.QGroupBox):
                                  um_per_pixel = float(data[1]),
                                  x_offset = float(data[2]),
                                  y_offset = float(data[3]))
+        # excludes obj_item from item_store so that item_store only has PointItems (allows for polygon selection with lines)
         #self.item_store.addItem(obj_item)
 
         # Create objective managing object.
