@@ -194,7 +194,6 @@ class SteveItemsStore(object):
             gi = self.line_items[item_id].getGraphicsItem()
             if gi is not None:
                 self.q_scene.removeItem(gi)
-            #self.line_items.pop(item_id)
 
     def removeItemType(self, item_type):
         new_dict = {}
