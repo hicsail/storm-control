@@ -16,7 +16,7 @@
 ##############
 ## camera offset files
 ##############
-cam_offsets_*.txt
+# cam_offsets_*.txt
 
 ############
 ## Windows
