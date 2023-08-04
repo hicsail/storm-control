@@ -237,7 +237,7 @@ class ChannelUIAdjustable(ChannelUI):
 
     def setAmplitude(self, amplitude):
         if (amplitude != self.powerslider.value()):
-            self.powerslider.setValue(amplitude)
+            self.powerslider.setValue(int(amplitude))
 
     def setupButtons(self, button_data):
 

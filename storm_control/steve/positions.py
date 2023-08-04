@@ -9,35 +9,66 @@ independent SteveModule() like object.
 Hazen 10/18
 Jeff 3/22
 """
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import storm_control.steve.coord as coord
 import storm_control.steve.steveItems as steveItems
+from collections import OrderedDict
+
+
+class LineItem(steveItems.SteveItem):
+    """
+    These are the straight lines that connect the positions of interest
+    """
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+
+        self.point_1 = None
+        self.point_2 = None
+
+        self.pen = QtGui.QPen()
+        self.pen.setWidth(100)
+
+        self.graphics_item = QtWidgets.QGraphicsLineItem(0, 0, 0, 0)
+        self.graphics_item.setPen(self.pen)
+
+    def getGraphicsItem(self):
+        return self.graphics_item
+
+    def saveItem(self, directory, name_no_extension):
+        return self.text
+        
+    def setLineLocation(self, point_1, point_2):
+        self.point_1 = point_1
+        self.point_2 = point_2
+        self.graphics_item.setLine(self.point_1.x_pix, self.point_1.y_pix, self.point_2.x_pix, self.point_2.y_pix)
+
 
 
 class PositionItem(steveItems.SteveItem):
     """
-    These are the square boxes that are used for displaying
+    These are the circles that are used for displaying
     positions of interest
     """
-    brush = QtGui.QBrush(QtGui.QColor(255,255,255,0))
-    data_type = "position"
+    deselected_brush = QtGui.QBrush(QtGui.QColor(0,0,255))
+    selected_brush = QtGui.QBrush(QtGui.QColor(255,0,0))
     deselected_pen = QtGui.QPen(QtGui.QColor(0,0,255))
-    rectangle_size = 1
     selected_pen = QtGui.QPen(QtGui.QColor(255,0,0))
+    data_type = "position"
+    rectangle_size = None
 
     def __init__(self, a_point = None, **kwds):
         super().__init__(**kwds)
 
         self.a_point = None
         self.text = None
+        self.rectangle_size = 100
         self.x_size = coord.umToPix(self.rectangle_size)
         self.y_size = coord.umToPix(self.rectangle_size)
         
-        self.graphics_item = QtWidgets.QGraphicsRectItem(0, 0, self.x_size, self.y_size)
+        self.graphics_item = QtWidgets.QGraphicsEllipseItem(0, 0, self.x_size, self.y_size)
         self.graphics_item.setPen(self.deselected_pen)
-        self.graphics_item.setBrush(self.brush)
+        self.graphics_item.setBrush(self.deselected_brush)
         self.graphics_item.setZValue(1000.0)
         self.setLocation(a_point)
 
@@ -74,9 +105,11 @@ class PositionItem(steveItems.SteveItem):
         if selected:
             self.graphics_item.setZValue(2000.0)
             self.graphics_item.setPen(self.selected_pen)
+            self.graphics_item.setBrush(self.selected_brush)
         else:
             self.graphics_item.setZValue(1000.0)
             self.graphics_item.setPen(self.deselected_pen)
+            self.graphics_item.setBrush(self.deselected_brush)
 
 
 class PositionItemLoader(steveItems.SteveItemLoader):
@@ -127,6 +160,42 @@ class Positions(QtWidgets.QListView):
 
         self.updateTitle()
 
+        # add lines to model 
+        if len(self.item_store.items) >= 2:
+            self.removeLines()
+            self.addLines()
+            
+
+    def addLines(self): 
+        if len(self.item_store.items) < 2:
+            return       
+        for i in range(len(self.item_store.items) - 1):
+            first = list(self.item_store.items.items())[i][1]
+            second = list(self.item_store.items.items())[i+1][1]
+            
+            line = LineItem()
+            
+            point_1 = coord.Point(first.a_point.x_pix, first.a_point.y_pix, "pix")
+            point_2 = coord.Point(second.a_point.x_pix, second.a_point.y_pix, "pix")
+            
+            line.setLineLocation(point_1, point_2)
+            self.item_store.addItem(line, isLine=True)
+
+        first = list(self.item_store.items.items())[-1][1]
+        second = list(self.item_store.items.items())[0][1]
+        line = LineItem()
+        point_1 = coord.Point(first.a_point.x_pix, first.a_point.y_pix, "pix")
+        point_2 = coord.Point(second.a_point.x_pix, second.a_point.y_pix, "pix")
+        line.setLineLocation(point_1, point_2)
+        self.item_store.addItem(line, isLine=True)
+
+
+    def removeLines(self):
+        for id in self.item_store.line_items:
+            self.item_store.removeItem(id, isLine=True)
+        self.item_store.line_items = OrderedDict()
+
+
     def handleDeletePositions(self):
         # Loop over all selected indexes and create a list of current items
         selected_indexes = reversed(sorted(self.selectedIndexes())) # Note that the order is important
@@ -148,7 +217,7 @@ class Positions(QtWidgets.QListView):
         # Compile list of all graphics items
         graphics_item_list = []
         for graphics_item in selected_graphics_items:
-            if isinstance(graphics_item, QtWidgets.QGraphicsRectItem):
+            if isinstance(graphics_item, QtWidgets.QGraphicsEllipseItem):
                 graphics_item_list.append(graphics_item)
         
         # Now iterate over all positions
@@ -192,7 +261,6 @@ class Positions(QtWidgets.QListView):
         self.viewport().update()
 
     def currentTabChanged(self, tab_index):
-
         # Clear the model and re-create from the items as other
         # modules (in other tabs) can also add positions.
         if (tab_index == 0):
@@ -224,6 +292,8 @@ class Positions(QtWidgets.QListView):
             for ind in range(len(valid_indexes)):
                 self.position_list_model.removeRow(valid_indexes[ind].row())
                 self.item_store.removeItem(current_items[ind].position_item.getItemID())
+                self.removeLines()
+                self.addLines()
             self.updateTitle()
 
         elif which_key in [QtCore.Qt.Key_8, QtCore.Qt.Key_2, QtCore.Qt.Key_4, QtCore.Qt.Key_6]:

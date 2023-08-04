@@ -622,8 +622,8 @@ class SectionsView(QtWidgets.QWidget):
         painter.setOpacity(0.2)
         x_mid = self.width()/2
         y_mid = self.height()/2
-        painter.drawLine(0, y_mid, self.width(), y_mid)
-        painter.drawLine(x_mid, 0, x_mid, self.height())
+        painter.drawLine(0, int(y_mid), int(self.width()), int(y_mid))
+        painter.drawLine(int(x_mid), 0, int(x_mid), int(self.height()))
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:

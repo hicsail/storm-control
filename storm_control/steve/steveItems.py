@@ -9,6 +9,8 @@ import os
 import warnings
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from collections import OrderedDict
+import coord
 
 
 item_id = 0
@@ -70,26 +72,51 @@ class SteveItemsStore(object):
     def __init__(self, **kwds):
         super().__init__(**kwds)
 
-        self.item_loaders = {}
-        self.items = {}
+        self.item_loaders = OrderedDict()
+        self.items = OrderedDict()
+        self.position_items = OrderedDict()
+        self.line_items = OrderedDict()
         self.margin = 8000
         self.q_scene = QtWidgets.QGraphicsScene()
 
-    def addItem(self, item):
+    def addItem(self, item, isLine=False, isPosition=False):
         """
         This will add the SteveItem to our data store and also to the
-        QGraphicsScene if this is a graphical SteveItem.
+        QGraphicsScene if this is a graphical SteveItem. 
+
+        We differentiate between cases for which we add a Line and Point. Lines are added to the line_items store, while Points are added to the items store.
         """
-        assert not (item.getItemID() in self.items)
-        self.items[item.getItemID()] = item
-        gi = item.getGraphicsItem()
-        if gi is not None:
-            self.q_scene.addItem(gi)
+        if not isLine:
+            assert not (item.getItemID() in self.items)
+            self.items[item.getItemID()] = item
+            gi = item.getGraphicsItem()
+            
+            if gi is not None:
+                self.q_scene.addItem(gi)
+
+            bd_rect = self.q_scene.itemsBoundingRect()
 
             # Recalculate scene bounding box. We maintain a rather large
             # (8000 pixel) bounding box.
+            bd_rect.setBottom(bd_rect.bottom() + self.margin)
+            bd_rect.setLeft(bd_rect.left() - self.margin)
+            bd_rect.setRight(bd_rect.right() + self.margin)
+            bd_rect.setTop(bd_rect.top() - self.margin)
+
+            self.q_scene.setSceneRect(bd_rect)
+        
+        if isLine:
+            assert not (item.getItemID() in self.line_items)
+            self.line_items[item.getItemID()] = item
+            gi = item.getGraphicsItem()
+
+            if gi is not None:
+                self.q_scene.addItem(gi)
+
             bd_rect = self.q_scene.itemsBoundingRect()
 
+            # Recalculate scene bounding box. We maintain a rather large
+            # (8000 pixel) bounding box.
             bd_rect.setBottom(bd_rect.bottom() + self.margin)
             bd_rect.setLeft(bd_rect.left() - self.margin)
             bd_rect.setRight(bd_rect.right() + self.margin)
@@ -157,11 +184,16 @@ class SteveItemsStore(object):
 
         return True
 
-    def removeItem(self, item_id):
-        gi = self.items[item_id].getGraphicsItem()
-        if gi is not None:
-            self.q_scene.removeItem(gi)
-        self.items.pop(item_id)
+    def removeItem(self, item_id, isLine=False):
+        if not isLine:
+            gi = self.items[item_id].getGraphicsItem()
+            if gi is not None:
+                self.q_scene.removeItem(gi)
+            self.items.pop(item_id)
+        if isLine:
+            gi = self.line_items[item_id].getGraphicsItem()
+            if gi is not None:
+                self.q_scene.removeItem(gi)
 
     def removeItemType(self, item_type):
         new_dict = {}

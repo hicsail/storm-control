@@ -135,7 +135,9 @@ class NoneCameraControl(cameraControl.CameraControl):
             self.fake_frame = numpy.zeros(size_x * size_y, dtype = numpy.uint16)
             for i in range(size_x):
                 for j in range(size_y):
-                    self.fake_frame[j*size_x+i] = i % 128 + j % 128
+                    # replaced rainbow pattern grid with blad grid in order to make selections easier to see on emulator
+                    #self.fake_frame[j*size_x+i] = i % 128 + j % 128
+                    self.fake_frame[j*size_x+i] = 0 
 
             if running:
                 self.startCamera()
